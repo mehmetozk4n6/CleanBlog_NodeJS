@@ -1,8 +1,10 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const methodOverride = require("method-override");
 const ejs = require("ejs");
 const path = require("path");
-const Post = require("./models/Post");
+const postController = require("./controllers/postController");
+const pageController = require("./controllers/pageController");
 
 const app = express();
 
@@ -19,30 +21,28 @@ app.set("view engine", "ejs");
 app.use(express.static(__dirname + "/public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(
+  methodOverride("_method", {
+    methods: ["POST", "GET"],
+  })
+);
 
 const port = 3000;
 
 // ROUTES
-app.get("/", async (req, res) => {
-  const posts = await Post.find({});
-  res.render("index", {
-    posts,
-  });
-});
-app.get("/posts/:id", async (req, res) => {
-  const post = await Post.findById(req.params.id);
-  res.render("post", { post });
-});
-app.get("/about", (req, res) => {
-  res.render("about");
-});
-app.get("/add_post", (req, res) => {
-  res.render("add_post");
-});
-app.post("/posts", async (req, res) => {
-  await Post.create(req.body);
-  res.redirect("/");
-});
+app.get("/", postController.getPosts);
+
+app.get("/posts/:id", postController.getPost);
+
+app.get("/about", pageController.getAboutPage);
+
+app.get("/add_post", pageController.getAddPostPage);
+
+app.post("/posts", postController.createPost);
+
+app.put("/posts/:id", postController.updatePost);
+
+app.delete("/posts/:id", postController.deletePost);
 
 app.listen(port, () => {
   console.log(`Sunucu ${port} portunda başlatıldı.`);
